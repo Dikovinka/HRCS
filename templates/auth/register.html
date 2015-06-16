@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+
+<!-- Contact Section -->
+<section id="contact">
+    <div class="container page-header">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <h2>Hi Friend, Fill the form, please</h2>
+                <hr class="star-primary">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-lg-offset-3">
+                <!-- To configure the contact form email address, go to mail/contact_me.php and update the email address in the PHP file on line 19. -->
+                <!-- The form should work on most web servers, but if the form is not working you may need to configure your web server differently. -->
+                <form name="login" id="signUpForm" action="/signup/" method="post">
+                    {% csrf_token %}
+                    <div class="row control-group">
+                        <div class="form-group col-xs-12 floating-label-form-group controls">
+                            <label><i class="fa fa-check"></i>&nbsp;First Name</label>
+                            <input type="text" class="form-control" placeholder="First Name" id="first_name" name="first_name">
+                        </div>
+                    </div>
+                    {% if first_name %}
+                        <div class="alert alert-dismissible alert-danger">
+                            <button type="button" class="close" data-dismiss="alert">×</button>
+                            <strong> {{ first_name }} </strong>
+                        </div>
+                    {% endif %}
+                    <div class="row control-group">
+                        <div class="form-group col-xs-12 floating-label-form-group controls">
+                            <label><i class="fa fa-check"></i>&nbsp;Last Name</label>
+                            <input type="text" class="form-control" placeholder="Last Name" id="last_name" name="last_name" >
+                        </div>
+                    </div>
+                    {% if last_name %}
+                        <div class="alert alert-dismissible alert-danger">
+                            <button type="button" class="close" data-dismiss="alert">×</button>
+                            <strong> {{ last_name }} </strong>
+                        </div>
+                    {% endif %}
+                    <div class="row control-group">
+                        <div class="form-group col-xs-12 floating-label-form-group controls">
+                            <label><i class="fa fa-user-secret"></i>&nbsp;User Name</label>
+                            <input type="text" class="form-control" placeholder="User Name" id="username" name="username" required data-validation-required-message="Please enter your username.">
+                        </div>
+                    </div>
+                    {% if username %}
+                        <div class="alert alert-dismissible alert-danger">
+                            <button type="button" class="close" data-dismiss="alert">×</button>
+                            <strong> {{ username }} </strong>
+                        </div>
+                    {% endif %}
+                    <div class="row control-group">
+                        <div class="form-group col-xs-12 floating-label-form-group controls">
+                            <label><i class="fa fa-envelope-o"></i>&nbsp;Email</label>
+                            <input type="text" class="form-control" placeholder="Email" id="email" name="email" required data-validation-required-message="Please enter your email.">
+                        </div>
+                    </div>
+                    {% if email %}
+                        <div class="alert alert-dismissible alert-danger">
+                            <button type="button" class="close" data-dismiss="alert">×</button>
+                            <strong> {{ email }} </strong>
+                        </div>
+                    {% endif %}
+                    <div class="row control-group">
+                        <div class="form-group col-xs-12 floating-label-form-group controls">
+                            <label><i class="fa fa-key"></i>&nbsp;Password</label>
+                            <input type="password" class="form-control" placeholder="Password" id="password" name="password" required data-validation-required-message="Please enter your password.">
+                        </div>
+                    </div>
+                    {% if password %}
+                        <div class="alert alert-dismissible alert-danger">
+                            <button type="button" class="close" data-dismiss="alert">×</button>
+                            <strong> {{ password }} </strong>
+                        </div>
+                    {% endif %}
+                    <div class="row control-group">
+                        <div class="form-group col-xs-12 floating-label-form-group controls">
+                            <label><i class="fa fa-key"></i>&nbsp;Retype Password</label>
+                            <input type="password" class="form-control" placeholder="Retype Password" id="retype_password" name="retype_password" required data-validation-required-message="Please retype your password.">
+                        </div>
+                    </div>
+                    {% if retype_password %}
+                        <div class="alert alert-dismissible alert-danger">
+                            <button type="button" class="close" data-dismiss="alert">×</button>
+                            <strong> {{ retype_password }} </strong>
+                        </div>
+                    {% endif %}
+                    <br>
+                    <div id="success"></div>
+                    <div class="row">
+                        <div class="form-group col-xs-12">
+                            <button type="submit" class="btn btn-success btn-lg"><i class="fa fa-sign-in"></i>&nbsp;Sign Up</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock content %}
+
+{% block footer %}
+{% include 'landing/extended_footer.html' %}
+{% endblock footer %}

@@ -21,7 +21,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'bud(ruo3*wd1oj4%!oh1ig1q7gwecg@2qwowrw@idx6r_j$0j7'
-
+MANDRILL_API_KEY = '0izk88Jh1Cy7DTajye63rg'
+API_BASE_LINK = 'http://127.0.0.1:8000/api/'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -38,10 +39,9 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'API',
     'HRMS_website',
-    'bootstrap3',
-    'demo',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -62,7 +62,8 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             os.path.join(BASE_DIR, 'HRMS_website', 'templates'),
-            os.path.join(BASE_DIR, 'demo', 'templates'),
+            # os.path.join(BASE_DIR, 'demo', 'templates'),
+            os.path.join(BASE_DIR, 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -108,7 +109,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_files')
 STATICFILES_DIRS = (
-    ('HRMS_website/static', os.path.join(BASE_DIR, 'HRMS_website', 'static')),
+    ('', os.path.join(BASE_DIR, 'static')),
 )
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+}

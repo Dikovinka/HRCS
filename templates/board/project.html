@@ -1,0 +1,901 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    <script src="{% static 'js/Sortable.js' %}"></script>
+    <script src="{% static 'js/angular.min.js' %}"></script>
+    <script src="{% static 'js/ng-sortable.js' %}"></script>
+    <script src="{% static 'js/bootbox.js' %}"></script>
+    <!-- Contact Section -->
+    <section id="contact">
+        <div class="container page-header">
+            {% for project in user_projects %}
+                {% if project.project_details.id == project_id %}
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-lg-12 text-center">
+                            <a href="/project/{{ project.project_details.id }}">
+                                <h4><i class="fa fa-tasks"></i>&nbsp;{{ project.project_details.title }} </h4></a>
+                            <hr class="star-primary">
+                            <div class="row text-left">
+                                <div class="col-lg-3" style="padding-left: 15px; padding-right: 0;">
+                                    <p class="lead">To Do:</p>
+                                    <ul class="list-group" id="opened_{{ project.project_details.id }}">
+                                        {% for issue in project.project_details.issues %}
+                                            {% if issue.status == 'OPENED' %}
+                                                <li class="list-group-item" id="{{ issue.id }}">
+                                                    {% if issue.type == 'TASK' %}
+                                                        <a href="#issueModal{{ issue.id }}"
+                                                           class="label label-info portfolio-link"
+                                                           data-toggle="modal">{{ issue.issue_key }}</a>
+                                                    {% elif issue.type == 'BUG' %}
+                                                        <a href="#issueModal{{ issue.id }}"
+                                                           class="label label-danger portfolio-link"
+                                                           data-toggle="modal">{{ issue.issue_key }}</a>
+                                                    {% elif issue.type == 'SUB_TASK' %}
+                                                        <a href="#issueModal{{ issue.id }}"
+                                                           class="label label-default portfolio-link"
+                                                           data-toggle="modal">{{ issue.issue_key }}</a>
+                                                    {% endif %}
+                                                    {% if issue.priority == 'TRIVIAL' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-down" style="color: #009926"></i>
+                                                    {% elif issue.priority == 'MINOR' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-down" style="color: #770000"></i>
+                                                    {% elif issue.priority == 'MAJOR' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-up" style="color: #009926"></i>
+                                                    {% elif issue.priority == 'CRITICAL' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-up" style="color: #770000"></i>
+                                                    {% elif issue.priority == 'BLOCKER' %}
+                                                        &nbsp;<i class="fa fa-ban" style="color: #770000"></i>
+                                                    {% endif %}
+                                                    <p class="text-info">{{ issue.title }}</p>
+                                                    <a href="#" class="text-primary"><i
+                                                            class="fa fa-male"></i>&nbsp;{{ issue.assigned_to.first_name }} {{ issue.assigned_to.last_name }}
+                                                    </a>
+                                                    {% if issue.issue_comments|length %}
+                                                        <span class="badge">{{ issue.issue_comments|length }}</span>{% endif %}
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="col-lg-3" style="padding-left: 0; padding-right: 0;">
+                                    <p class="lead">In progress:</p>
+                                    <ul class="list-group" id="in_progress_{{ project.project_details.id }}">
+                                        {% for issue in project.project_details.issues %}
+                                            {% if issue.status == 'IN_PROGRESS' %}
+                                                <li class="list-group-item" id="{{ issue.id }}">
+                                                    {% if issue.type == 'TASK' %}
+                                                        <a href="#issueModal{{ issue.id }}"
+                                                           class="label label-info portfolio-link"
+                                                           data-toggle="modal">{{ issue.issue_key }}</a>
+                                                    {% elif issue.type == 'BUG' %}
+                                                        <a href="#issueModal{{ issue.id }}"
+                                                           class="label label-danger portfolio-link"
+                                                           data-toggle="modal">{{ issue.issue_key }}</a>
+                                                    {% elif issue.type == 'SUB_TASK' %}
+                                                        <a href="#issueModal{{ issue.id }}"
+                                                           class="label label-default portfolio-link"
+                                                           data-toggle="modal">{{ issue.issue_key }}</a>
+                                                    {% endif %}
+                                                    {% if issue.priority == 'TRIVIAL' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-down" style="color: #009926"></i>
+                                                    {% elif issue.priority == 'MINOR' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-down" style="color: #770000"></i>
+                                                    {% elif issue.priority == 'MAJOR' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-up" style="color: #009926"></i>
+                                                    {% elif issue.priority == 'CRITICAL' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-up" style="color: #770000"></i>
+                                                    {% elif issue.priority == 'BLOCKER' %}
+                                                        &nbsp;<i class="fa fa-ban" style="color: #770000"></i>
+                                                    {% endif %}
+                                                    <p class="text-info">{{ issue.title }}</p>
+                                                    <a href="#" class="text-primary"><i
+                                                            class="fa fa-male"></i>&nbsp;{{ issue.assigned_to.first_name }} {{ issue.assigned_to.last_name }}
+                                                    </a>
+                                                    {% if issue.issue_comments|length %}
+                                                        <span class="badge">{{ issue.issue_comments|length }}</span>{% endif %}
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="col-lg-3" style="padding-left: 0; padding-right: 0;">
+                                    <p class="lead">Development Done:</p>
+                                    <ul class="list-group" id="resolved_{{ project.project_details.id }}">
+                                        {% for issue in project.project_details.issues %}
+                                            {% if issue.status == 'RESOLVED' %}
+                                                <li class="list-group-item" id="{{ issue.id }}">
+                                                    {% if issue.type == 'TASK' %}
+                                                        <a href="#issueModal{{ issue.id }}"
+                                                           class="label label-info portfolio-link"
+                                                           data-toggle="modal">{{ issue.issue_key }}</a>
+                                                    {% elif issue.type == 'BUG' %}
+                                                        <a href="#issueModal{{ issue.id }}"
+                                                           class="label label-danger portfolio-link"
+                                                           data-toggle="modal">{{ issue.issue_key }}</a>
+                                                    {% elif issue.type == 'SUB_TASK' %}
+                                                        <a href="#issueModal{{ issue.id }}"
+                                                           class="label label-default portfolio-link"
+                                                           data-toggle="modal">{{ issue.issue_key }}</a>
+                                                    {% endif %}
+                                                    {% if issue.priority == 'TRIVIAL' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-down" style="color: #009926"></i>
+                                                    {% elif issue.priority == 'MINOR' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-down" style="color: #770000"></i>
+                                                    {% elif issue.priority == 'MAJOR' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-up" style="color: #009926"></i>
+                                                    {% elif issue.priority == 'CRITICAL' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-up" style="color: #770000"></i>
+                                                    {% elif issue.priority == 'BLOCKER' %}
+                                                        &nbsp;<i class="fa fa-ban" style="color: #770000"></i>
+                                                    {% endif %}
+                                                    <p class="text-info">{{ issue.title }}</p>
+                                                    <a href="#" class="text-primary"><i
+                                                            class="fa fa-male"></i>&nbsp;{{ issue.assigned_to.first_name }} {{ issue.assigned_to.last_name }}
+                                                    </a>
+                                                    {% if issue.issue_comments|length %}
+                                                        <span class="badge">{{ issue.issue_comments|length }}</span>{% endif %}
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="col-lg-3" style="padding-left: 0; padding-right: 15px;">
+                                    <p class="lead">Closed:</p>
+                                    <ul class="list-group" id="closed_{{ project.project_details.id }}">
+                                        {% for issue in project.project_details.issues %}
+                                            {% if issue.status == 'CLOSED' %}
+                                                <li class="list-group-item" id="{{ issue.id }}">
+                                                    {% if issue.type == 'TASK' %}
+                                                        <a href="#issueModal{{ issue.id }}"
+                                                           class="label label-info portfolio-link"
+                                                           data-toggle="modal">{{ issue.issue_key }}</a>
+                                                    {% elif issue.type == 'BUG' %}
+                                                        <a href="#issueModal{{ issue.id }}"
+                                                           class="label label-danger portfolio-link"
+                                                           data-toggle="modal">{{ issue.issue_key }}</a>
+                                                    {% elif issue.type == 'SUB_TASK' %}
+                                                        <a href="#issueModal{{ issue.id }}"
+                                                           class="label label-default portfolio-link"
+                                                           data-toggle="modal">{{ issue.issue_key }}</a>
+                                                    {% endif %}
+                                                    {% if issue.priority == 'TRIVIAL' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-down" style="color: #009926"></i>
+                                                    {% elif issue.priority == 'MINOR' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-down" style="color: #770000"></i>
+                                                    {% elif issue.priority == 'MAJOR' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-up" style="color: #009926"></i>
+                                                    {% elif issue.priority == 'CRITICAL' %}
+                                                        &nbsp;<i class="fa fa-arrow-circle-up" style="color: #770000"></i>
+                                                    {% elif issue.priority == 'BLOCKER' %}
+                                                        &nbsp;<i class="fa fa-ban" style="color: #770000"></i>
+                                                    {% endif %}
+                                                    <p class="text-info">{{ issue.title }}</p>
+                                                    <a href="#" class="text-primary"><i
+                                                            class="fa fa-male"></i>&nbsp;{{ issue.assigned_to.first_name }} {{ issue.assigned_to.last_name }}
+                                                    </a>
+                                                    {% if issue.issue_comments|length %}
+                                                        <span class="badge">{{ issue.issue_comments|length }}</span>{% endif %}
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        lists = [
+                            'opened_{{ project.project_details.id }}',
+                            'in_progress_{{ project.project_details.id }}',
+                            'resolved_{{ project.project_details.id }}',
+                            'closed_{{ project.project_details.id }}',
+                        ];
+                        for (list of lists) {
+                            Sortable.create(document.getElementById(list), {
+                                group: {
+                                name: String(list),
+                                put: lists,
+                                },
+                                sort: false,
+                                animation: 150,
+                                onAdd: function (/**Event*/evt) {
+                                    var http=new XMLHttpRequest();
+                                    var params = evt.to.id.split("_");
+                                    params.pop();
+                                    params = params.join("_").toUpperCase();
+                                    http.open("GET", '/update_issue/' + evt.item.id + '/?' + 'status=' + params, true);
+                                    http.setRequestHeader("Content-type", "application/json; charset=utf-8");
+                                    http.setRequestHeader("Content-length", params.length);
+                                    http.setRequestHeader("Connection", "close");
+                                    http.send(params);
+                                    element = document.getElementById('status_' + evt.item.id);
+                                    if (params == 'OPENED') {
+                                        element.className = 'form-control label-default';
+                                        var opts = element.options;
+                                        for(var opt, j = 0; opt = opts[j]; j++) {
+                                            if(opt.value == 'OPENED') {
+                                                element.selectedIndex = j;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    else if (params == 'IN_PROGRESS') {
+                                        element.className = 'form-control label-warning';
+                                        var opts = element.options;
+                                        for(var opt, j = 0; opt = opts[j]; j++) {
+                                            if(opt.value == 'IN_PROGRESS') {
+                                                element.selectedIndex = j;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    else if (params == 'RESOLVED') {
+                                        element.className = 'form-control label-info';
+                                        var opts = element.options;
+                                        for(var opt, j = 0; opt = opts[j]; j++) {
+                                            if(opt.value == 'RESOLVED') {
+                                                element.selectedIndex = j;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    else if (params == 'CLOSED') {
+                                        element.className = 'form-control label-success';
+                                        var opts = element.options;
+                                        for(var opt, j = 0; opt = opts[j]; j++) {
+                                            if(opt.value == 'CLOSED') {
+                                                element.selectedIndex = j;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                },
+                                onStart: function (/**Event*/evt) {
+                                    item_height = evt.item.clientHeight;
+                                    for (element of this.options.group.put) {
+                                        element = document.getElementById(element);
+                                        if (element.clientHeight < item_height*2) {
+                                            element.style.height = item_height + 'px';
+                                        }
+                                    }
+                                },
+                                onEnd: function (/**Event*/evt) {
+                                    for (element of this.options.group.put) {
+                                        element = document.getElementById(element);
+                                        element.style.height = '';
+                                    }
+                                },
+                            });
+                        }
+                    </script>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+{% endblock content %}
+
+{% block hiddencontent %}
+    <!-- Scroll to Top Button (Only visible on small and extra-small screen sizes) -->
+    <div class="scroll-top page-scroll visible-xs visible-sm">
+        <a class="btn btn-primary" href="#page-top">
+            <i class="fa fa-chevron-up"></i>
+        </a>
+    </div>
+    {% for project in user_projects %}
+        {% if project.project_details.id == project_id %}
+        {% for issue in project.project_details.issues %}
+            <!-- Issue Modals -->
+            <div class="portfolio-modal modal fade" id="issueModal{{ issue.id }}" tabindex="-1" role="dialog"
+                 aria-hidden="true">
+                <div class="modal-content">
+                    <div class="close-modal" data-dismiss="modal">
+                        <div class="lr">
+                            <div class="rl">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container text-center">
+                        <div class="row">
+                            <div class="col-lg-8 col-lg-offset-2">
+                                <div class="panel panel-primary">
+                                    <div class="panel-heading">
+                                        <h3 class="panel-title">{{ issue.issue_key }} — {{ issue.title }}</h3>
+                                    </div>
+                                    <div class="panel-body">
+                                        <div class="modal-body text-left">
+                                            <form class="form-horizontal" method="POST"
+                                                  action="/update_issue/{{ issue.id }}/">
+                                                <fieldset>
+                                                    <div class="form-group">
+                                                        <label class="col-lg-2 control-label">Project</label>
+
+                                                        <div class="col-lg-4">
+                                                            <p class="form-control">
+                                                                <i class="fa fa-tasks"></i>&nbsp;{{ project.project_details.title }}
+                                                            </p>
+                                                        </div>
+
+                                                        <label for="status_{{ issue.id }}"
+                                                               class="col-lg-2 control-label">Status</label>
+
+                                                        <div class="col-lg-4">
+                                                            <select class="form-control
+                                                            {% if issue.status == "IN_PROGRESS" %} label-warning
+                                                            {% elif issue.status == "OPENED" %} label-default
+                                                            {% elif issue.status == "CLOSED" %} label-success
+                                                            {% elif issue.status == "RESOLVED" %} label-info
+                                                            {% endif %}" id="status_{{ issue.id }}" name="status"
+                                                                    onchange="issue_status()">
+                                                                {% for status in issue.options.actions.PUT.status.choices %}
+                                                                    <option value="{{ status.value }}"
+                                                                            {% if status.value == issue.status %}selected{% endif %}
+                                                                            class="
+                                                                                {% if status.value == "IN_PROGRESS" %} label-warning
+                                                                                {% elif status.value == "OPENED" %} label-default
+                                                                                {% elif status.value == "CLOSED" %} label-success
+                                                                                {% elif status.value == "RESOLVED" %} label-info
+                                                                                {% endif %}">
+                                                                        {{ status.display_name }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group">
+                                                        <label for="type"
+                                                               class="col-lg-2 control-label">Type</label>
+
+                                                        <div class="col-lg-4">
+                                                            <select class="form-control
+                                                                {% if issue.type == 'TASK' %}label-info
+                                                                {% elif issue.type == 'BUG' %}label-danger
+                                                                {% elif issue.type == 'SUB_TASK' %}label-default
+                                                                {% endif %}
+                                                                " id="type" name="type" onchange="issue_type()">
+                                                                <option class="label-info" value="TASK"
+                                                                        {% if issue.type == 'TASK' %}selected{% endif %}>
+                                                                    Task
+                                                                </option>
+                                                                <option class="label-danger" value="BUG"
+                                                                        {% if issue.type == 'BUG' %}selected{% endif %}>
+                                                                    Bug
+                                                                </option>
+                                                                <option class="label-default" value="SUB_TASK"
+                                                                        {% if issue.type == 'SUB_TASK' %}selected{% endif %}>
+                                                                    Sub Task
+                                                                </option>
+                                                            </select>
+                                                        </div>
+
+                                                        <label for="priority"
+                                                               class="col-lg-2 control-label">Priority</label>
+
+                                                        <div class="col-lg-4">
+                                                            <select class="form-control
+                                                                {% if issue.priority == 'TRIVIAL' %}label-default
+                                                                {% elif issue.priority == 'MINOR' %}label-success
+                                                                {% elif issue.priority == 'MAJOR' %}info
+                                                                {% elif issue.priority == 'CRITICAL' %}label-warning
+                                                                {% elif issue.priority == 'BLOCKER' %}label-danger
+                                                                {% endif %}" id="priority" name="priority"
+                                                                    onchange="issue_priority()">
+                                                                <option value="TRIVIAL" class="label-default"
+                                                                        {% if issue.priority == 'TRIVIAL' %}
+                                                                        selected{% endif %}>
+                                                                    Trivial
+                                                                </option>
+                                                                <option value="MINOR" class="label-success"
+                                                                        {% if issue.priority == 'MINOR' %}
+                                                                        selected{% endif %}>
+                                                                    Minor
+                                                                </option>
+                                                                <option value="MAJOR" class="label-info"
+                                                                        {% if issue.priority == 'MAJOR' %}
+                                                                        selected{% endif %}>
+                                                                    Major
+                                                                </option>
+                                                                <option value="CRITICAL" class="label-warning"
+                                                                        {% if issue.priority == 'CRITICAL' %}
+                                                                        selected{% endif %}>
+                                                                    Critical
+                                                                </option>
+                                                                <option value="BLOCKER" class="label-danger"
+                                                                        {% if issue.priority == 'BLOCKER' %}
+                                                                        selected{% endif %}>
+                                                                    Blocker
+                                                                </option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="title" class="col-lg-2 control-label">Title</label>
+
+                                                        <div class="col-lg-10">
+                                                            <input type="text" class="form-control" id="title"
+                                                                   name="title"
+                                                                   value="{{ issue.title }}">
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="col-lg-2 control-label">Created&nbsp;by</label>
+
+                                                        <div class="col-lg-4">
+                                                            <p class="form-control">
+                                                                <i class="fa fa-male"></i>&nbsp;{{ issue.created_by.first_name }} {{ issue.created_by.last_name }}
+                                                            </p>
+                                                        </div>
+
+                                                        <label for="assigned_to"
+                                                               class="col-lg-2 control-label">Assigned&nbsp;to</label>
+
+                                                        <div class="col-lg-4">
+                                                            <select class="form-control" id="assigned_to"
+                                                                    name="assigned_to">
+                                                                {% for assignee in issue.options.actions.PUT.assigned_to.choices %}
+                                                                    <option value="{{ assignee.value }}"
+                                                                            {% if assignee.value == issue.assigned_to.url %}selected{% endif %}>{{ assignee.display_name }}</option>
+                                                                {% endfor %}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="issue_description" class="col-lg-2 control-label">Description</label>
+
+                                                        <div class="col-lg-10">
+                                                            <textarea class="form-control" rows="3"
+                                                                      id="issue_description"
+                                                                      name="issue_description">{{ issue.issue_description }}</textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-lg-10 col-lg-offset-2">
+                                                            <button type="button" class="btn btn-default"
+                                                                    data-dismiss="modal"><i class="fa fa-times"></i>
+                                                                Close
+                                                            </button>
+                                                            <button type="submit" class="btn btn-primary">Save
+                                                            </button>
+                                                            <button type="button" class="btn btn-info" id="log_work__{{ issue.id }}" onclick="log_work('create_form')">Log Work
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row text-left">
+                                    <div class="col-lg-8 col-lg-offset-1">
+                                        <p class="lead">Comments:</p>
+                                    </div>
+                                    <div class="col-lg-8 col-lg-offset-1" id="issue_comments__{{ issue.id }}">
+                                        {% for comment in issue.issue_comments %}
+                                            <div class="panel panel-primary" id="comment_panel__{{ comment.id }}">
+                                                <div class="panel-heading">
+                                                    <h3 class="panel-title">{{ comment.author }}
+                                                        {% if full_name == comment.author %}
+                                                            <span class="badge js-edit" id="comment_edit__{{ comment.id }}"><i
+                                                                    class="fa fa-pencil"></i></span>
+                                                            <span class="badge js-remove"><i class="fa fa-trash-o"></i></span>
+                                                        {% endif %}
+                                                    </h3>
+                                                </div>
+                                                <div class="panel-body">
+                                                    <p id="comment_paragrarh__{{ comment.id }}" class="text-info">{{ comment.comment }}</p>
+                                                </div>
+                                                <div class="panel-footer text-right">
+                                                    {% if comment.created == comment.updated %}
+                                                    Posted: {{ comment.created|slice:"0:10" }} {{ comment.created|slice:"11:19" }}
+                                                    {% else %}
+                                                    Updated: {{ comment.updated|slice:"0:10" }} {{ comment.updated|slice:"11:19" }}
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                        <div>
+                                            <a href="#" class="btn btn-primary" id="create_comment__{{ issue.id }}" onclick="create_comment('create_form');"><i class="fa fa-comment-o"></i> Add Comment</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <script>
+                                        Sortable.create(document.getElementById('issue_comments__{{ issue.id }}'), {
+                                            sort: false,
+                                            animation: 150,
+                                            filter:  ".js-remove, .js-edit",
+                                            onFilter: function (evt) {
+                                                var item = evt.item,
+                                                ctrl = evt.target;
+                                                if (Sortable.utils.is(ctrl, ".js-remove")) {
+                                                    var http=new XMLHttpRequest();
+                                                    params = '_method=DELETE'
+                                                    http.open("POST", '/update_comment/' + evt.item.id.split("__")[1] + '/', true);
+                                                    http.withCredentials = true;
+                                                    http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=utf-8");
+                                                    http.send(params);
+                                                    evt.item.parentNode.removeChild(evt.item);
+                                                }
+                                                else if (Sortable.utils.is(ctrl, ".js-edit")) {
+                                                    paragraph = document.getElementById('comment_paragrarh__'+evt.item.id.split("__")[1]);
+                                                    document.getElementById('comment_edit__'+evt.item.id.split("__")[1]).style.visibility = "hidden";
+                                                    var form = document.createElement("form");
+                                                    form.id = "comment_form__" + evt.item.id.split("__")[1];
+                                                    paragraph.parentNode.appendChild(form);
+                                                    form.method = "POST";
+                                                    form.action = "/update_comment/" + evt.item.id.split("__")[1];
+
+                                                    var form_group_1 = document.createElement("div");
+                                                    form_group_1.className = "form-group";
+                                                    form.appendChild(form_group_1);
+
+                                                    var form_group_2 = document.createElement("div");
+                                                    form_group_2.className = "form-group";
+                                                    form.appendChild(form_group_2);
+
+                                                    var element2 = document.createElement("TEXTAREA");
+                                                    element2.name="comment"
+                                                    element2.rows = '3'
+                                                    element2.className = "form-control";
+                                                    element2.innerHTML = paragraph.innerHTML;
+                                                    form_group_1.appendChild(element2);
+
+                                                    var element3 = document.createElement("button");
+                                                    element3.type = "reset";
+                                                    element3.className = "btn btn-default";
+                                                    element3.innerHTML = "<i class='fa fa-times'></i> Cancel";
+                                                    element3.setAttribute("onclick","javascript:save_comment(paragraph.innerHTML);");
+                                                    form_group_2.appendChild(element3);
+
+                                                    var element4 = document.createElement("button");
+                                                    element4.type = "button";
+                                                    element4.className = "btn btn-primary";
+                                                    element4.innerHTML = "Save";
+                                                    element4.setAttribute("onclick","javascript:save_comment('save');");
+                                                    form_group_2.appendChild(element4);
+                                                    paragraph.parentNode.removeChild(paragraph);
+                                                }
+                                            },
+                                        });
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        {% endif %}
+    {% endfor %}
+{% endblock hiddencontent %}
+
+{% block scripts %}
+    <!-- jQuery -->
+    <script src="{% static 'js/jquery.js' %}"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+
+    <!-- Plugin JavaScript -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+    <script src="{% static 'js/classie.js' %}"></script>
+    <script src="{% static 'js/cbpAnimatedHeader.js' %}"></script>
+
+    <!-- Contact Form JavaScript -->
+    <script src="{% static 'js/jqBootstrapValidation.js' %}"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="{% static 'js/freelancer.js' %}"></script>
+    <script src="{% static 'js/highlight.min.js' %}"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    <script>
+        function issue_type(e) {
+            e=e||window.event;
+            element = e.srcElement;
+            if (element.value == 'TASK') {
+                element.className = 'form-control label-info';
+            }
+            else if (element.value == 'BUG') {
+                element.className = 'form-control label-danger';
+            }
+            else {
+                element.className = 'form-control label-default';
+            }
+            return 0;
+        }
+
+        function issue_priority(e) {
+            e=e||window.event;
+            element = e.srcElement;
+            if (element.value == 'TRIVIAL') {
+                element.className = 'form-control label-default';
+            }
+            else if (element.value == 'MINOR') {
+                element.className = 'form-control label-success';
+            }
+            else if (element.value == 'MAJOR') {
+                element.className = 'form-control label-info';
+            }
+            else if (element.value == 'CRITICAL') {
+                element.className = 'form-control label-warning';
+            }
+            else {
+                element.className = 'form-control label-danger';
+            }
+            return 0;
+        }
+
+        function issue_status(e) {
+            e=e||window.event;
+            element = e.srcElement;
+            if (element.value == 'OPENED') {
+                element.className = 'form-control label-default';
+            }
+            else if (element.value == 'IN_PROGRESS') {
+                element.className = 'form-control label-warning';
+            }
+            else if (element.value == 'RESOLVED') {
+                element.className = 'form-control label-info';
+            }
+            else if (element.value == 'CLOSED') {
+                element.className = 'form-control label-success';
+            }
+            return 0;
+        }
+
+        function save_comment(event_type ,e) {
+            e=e||window.event;
+            button = e.srcElement;
+            form = button.parentNode.parentNode;
+            var p = document.createElement("p");
+            p.id = "comment_paragrarh__" + form.id.split("__")[1];
+            p.className = "text-info";
+            comment = form.elements['comment'].value;
+            if(event_type==="save") {
+                var http=new XMLHttpRequest();
+                params = '_method=PATCH;comment=' + comment + ';';
+                http.open("POST", '/update_comment/' + form.id.split("__")[1] + '/', true);
+                http.withCredentials = true;
+                http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=utf-8");
+                http.send(params);
+                p.innerHTML = comment;
+
+            }
+            else {
+                p.innerHTML = event_type;
+            }
+            form.parentNode.appendChild(p);
+            form.parentNode.removeChild(form);
+            document.getElementById('comment_edit__'+form.id.split("__")[1]).style.visibility = "visible";
+        }
+
+        function create_comment(event_type, e) {
+            e=e||window.event;
+            element = e.srcElement;
+            if(event_type === "create_form") {
+                div = element.parentNode;
+                var div_panel = document.createElement("div");
+                div_panel.className = "panel panel-primary";
+                div.insertBefore(div_panel, element);
+
+                var div_heading = document.createElement("div");
+                div_heading.className = "panel-heading";
+                div_panel.appendChild(div_heading);
+
+                var div_body = document.createElement("div");
+                div_body.className = "panel-body";
+                div_panel.appendChild(div_body);
+
+                var div_footer = document.createElement("div");
+                div_footer.className = "panel-footer text-right";
+                div_panel.appendChild(div_footer);
+
+                var h3 = document.createElement("h3");
+                h3.className = "panel-title";
+                h3.innerHTML = "{{ full_name }}";
+                div_heading.appendChild(h3);
+
+                var form = document.createElement("form");
+                div_body.appendChild(form);
+
+                var form_group_1 = document.createElement("div");
+                form_group_1.className = "form-group";
+                form.appendChild(form_group_1);
+
+                var form_group_2 = document.createElement("div");
+                form_group_2.className = "form-group";
+                form.appendChild(form_group_2);
+
+                var element1 = document.createElement("INPUT");
+                element1.name="issue"
+                element1.type = 'hidden'
+                element1.value = element.id.split("__")[1]
+                form_group_1.appendChild(element1);
+
+                var element2 = document.createElement("TEXTAREA");
+                element2.name="comment"
+                element2.rows = '3'
+                element2.className = "form-control";
+                element2.placeholder = "What's on your mind?";
+                form_group_1.appendChild(element2);
+
+                var element3 = document.createElement("button");
+                element3.type = "reset";
+                element3.className = "btn btn-default";
+                element3.innerHTML = "<i class='fa fa-times'></i> Cancel";
+                element3.setAttribute("onclick","javascript:create_comment('cancel');");
+                form_group_2.appendChild(element3);
+
+                var element4 = document.createElement("button");
+                element4.type = "button";
+                element4.className = "btn btn-primary";
+                element4.innerHTML = "Save";
+                element4.setAttribute("onclick","javascript:create_comment('create');");
+                form_group_2.appendChild(element4);
+            }
+            else if(event_type === "cancel") {
+                panel = element.parentNode.parentNode.parentNode.parentNode
+                panel.parentNode.removeChild(panel);
+            }
+            else if(event_type === "create") {
+                form = element.parentNode.parentNode;
+                var http=new XMLHttpRequest();
+                params='issue=/api/issues/' + form.elements['issue'].value + '/&comment=' + form.elements['comment'].value  + ';';
+                http.open("POST", '/update_comment/0/', true);
+                http.withCredentials = true;
+                http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=utf-8");
+                http.send(params);
+                var p = document.createElement("p");
+                p.id = "comment_paragrarh__" + form.id.split("__")[1];
+                p.className = "text-info";
+                comment = form.elements['comment'].value;
+                p.innerHTML = comment;
+                form.parentNode.appendChild(p);
+                footer = form.parentNode.parentNode.childNodes[2];
+                d = new Date();
+                footer.innerHTML = "Posted: " + d;
+                form.parentNode.removeChild(form);
+            }
+        }
+
+        function log_work(event_type, e) {
+            e=e||window.event;
+            element = e.srcElement;
+            if(event_type === "create_form") {
+                var p = document.createElement("p");
+
+                var div_panel = document.createElement("div");
+                div_panel.id = 'modal_' + element.id;
+                div_panel.className = "panel panel-primary text-center";
+                element.parentNode.appendChild(p);
+                element.parentNode.appendChild(div_panel);
+
+                var div_heading = document.createElement("div");
+                div_heading.className = "panel-heading";
+                div_panel.appendChild(div_heading);
+
+                var div_body = document.createElement("div");
+                div_body.className = "panel-body";
+                div_panel.appendChild(div_body);
+
+                var h3 = document.createElement("h3");
+                h3.className = "panel-title";
+                h3.innerHTML = "{{ full_name }}";
+                div_heading.appendChild(h3);
+
+                var form = document.createElement("form");
+                div_body.appendChild(form);
+
+                var fieldset = document.createElement("fieldset");
+                form.appendChild(fieldset);
+
+                var form_group_1 = document.createElement("div");
+                form_group_1.className = "form-group";
+                fieldset.appendChild(form_group_1);
+
+                var form_group_2 = document.createElement("div");
+                form_group_2.className = "form-group";
+                fieldset.appendChild(form_group_2);
+
+                var form_group_3 = document.createElement("div");
+                form_group_3.className = "form-group";
+                fieldset.appendChild(form_group_3);
+
+                var element1 = document.createElement("INPUT");
+                element1.name="issue"
+                element1.type = 'hidden'
+                element1.value = element.id.split("__")[1]
+                form_group_1.appendChild(element1);
+
+                var label2 = document.createElement("label");
+                label2.for="work_date"
+                label2.innerHTML = "Work date: ";
+                label2.className = "control-label";
+                form_group_1.appendChild(label2);
+
+
+                var date = new Date();
+                var day = date.getDate();
+                var month = date.getMonth() + 1;
+                var year = date.getFullYear();
+                if (month < 10) month = "0" + month;
+                if (day < 10) day = "0" + day;
+                var today = year + "-" + month + "-" + day;
+
+                var element2 = document.createElement("input");
+                element2.name="work_date"
+                element2.type = 'date'
+                element2.value = today;
+                element2.className = "form-control";
+                form_group_1.appendChild(element2);
+
+                var label3 = document.createElement("label");
+                label3.for="work_hours"
+                label3.innerHTML = "Work hours: ";
+                label3.className = "control-label";
+                form_group_2.appendChild(label3);
+
+                var element3 = document.createElement("input");
+                element3.name="work_hours"
+                element3.type = 'number'
+                element3.value = 0;
+                element3.className = "form-control";
+                form_group_2.appendChild(element3);
+
+                var label4 = document.createElement("label");
+                label4.for="work_minutes"
+                label4.innerHTML = "Work minutes: ";
+                label4.className = "control-label";
+                form_group_2.appendChild(label4);
+
+                var element4 = document.createElement("input");
+                element4.name="work_minutes"
+                element4.type = 'number'
+                element4.value = 0;
+                element4.className = "form-control";
+                form_group_2.appendChild(element4);
+
+                var element5 = document.createElement("button");
+                element5.type = "reset";
+                element5.className = "btn btn-default";
+                element5.innerHTML = "<i class='fa fa-times'></i> Cancel";
+                element5.setAttribute("onclick","javascript:log_work('cancel');");
+                form_group_3.appendChild(element5);
+
+                var element6 = document.createElement("button");
+                element6.type = "button";
+                element6.className = "btn btn-primary";
+                element6.innerHTML = "Save";
+                element6.setAttribute("onclick","javascript:log_work('create');");
+                form_group_3.appendChild(element6);
+            }
+            else if(event_type === "cancel") {
+                panel = element.parentNode.parentNode.parentNode.parentNode.parentNode;
+                panel.parentNode.removeChild(panel);
+            }
+            else if(event_type === "create") {
+                form = element.parentNode.parentNode;
+                var http=new XMLHttpRequest();
+                params='issue=/api/issues/' + form.elements['issue'].value + '/&work_date=' + form.elements['work_date'].value + '&work_hours=' + form.elements['work_hours'].value + '&work_minutes=' + form.elements['work_minutes'].value  + ';';
+                http.open("POST", '/add_work_log/', true);
+                http.withCredentials = true;
+                http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=utf-8");
+                http.send(params);
+                panel = element.parentNode.parentNode.parentNode.parentNode.parentNode;
+
+                var alert = document.createElement("div");
+                alert.innerHTML = "Worklog successfully <strong>published!</strong>";
+                alert.className = "alert alert-dismissible alert-success";
+                panel.parentNode.appendChild(alert);
+
+                var close = document.createElement("button");
+                close.type = "button";
+                close.setAttribute('data-dismiss','alert');
+                close.className = "close";
+                close.innerHTML = "×";
+                alert.appendChild(close);
+                panel.parentNode.removeChild(panel);
+            }
+        }
+    </script>
+{% endblock scripts %}

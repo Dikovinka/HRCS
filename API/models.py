@@ -3,6 +3,10 @@ from pygments.lexers import get_lexer_by_name
 from pygments.formatters.html import HtmlFormatter
 from pygments import highlight
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from HRMS.settings import API_BASE_LINK
+
 
 STATUSES_ENUM = [
     ('OPENED', 'Opened'),
@@ -25,7 +29,19 @@ LINKS_ENUM = [
 PERMISSION_TYPE_ENUM = [
     ('USER', 'User Permission'),
 ]
-
+TEAM_ROLE_ENUM = [
+    ('DEV', 'Developer'),
+    ('QA', 'QA Engineer'),
+    ('QALEAD', 'QA Team Lead'),
+    ('PM', 'Project Manager'),
+]
+PRIORITY_ENUM=[
+    ('TRIVIAL', 'Trivial'),
+    ('MINOR', 'Minor'),
+    ('MAJOR', 'Major'),
+    ('CRITICAL', 'Critical'),
+    ('BLOCKER', 'Blocker'),
+]
 
 
 class APIUser(User):
@@ -33,12 +49,11 @@ class APIUser(User):
         proxy = True
 
     def get_full_name_and_email(self):
-        return "{} {}({})".strip().format(self.first_name, self.last_name, self.email) if \
-            (self.first_name or self.last_name) else self.email
+        return "{} {}".strip().format(self.first_name, self.last_name) if \
+            (self.first_name or self.last_name) else self.username
 
     def __str__(self):
         return self.get_full_name_and_email()
-
 
 
 class Project(models.Model):
@@ -48,22 +63,34 @@ class Project(models.Model):
     abbr = models.CharField(max_length=10, unique=True)
     title = models.CharField(max_length=100, unique=True)
     project_description = models.TextField(blank=True, default='')
-    team_only = models.BooleanField(default=False)
     project_manager = models.ForeignKey('APIUser', related_name='projects')
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
 
+
+@receiver(post_save, sender=Project)
+def add_project_manager(sender, **kwargs):
+    project = kwargs['instance']
+    project_manager=dict(
+        project=project,
+        user=project.project_manager,
+        team_role='PM',
+    )
+    ProjectTeam.objects.create(**project_manager)
+
+
 class ProjectTeam(models.Model):
     class Meta:
-        ordering = ('project_id',)
+        ordering = ('project', 'id',)
+        unique_together = ('project', 'user',)
 
-    user_id = models.ForeignKey('APIUser', related_name='user_projects')
-    project_id = models.ForeignKey('Project', related_name='project_team')
-
+    user = models.ForeignKey('APIUser', related_name='user_projects')
+    project = models.ForeignKey('Project', related_name='project_team')
+    team_role = models.CharField(choices=TEAM_ROLE_ENUM, default=TEAM_ROLE_ENUM[0], max_length=50)
     def __str__(self):
-        return self.user_id.get_full_name_and_email()
+        return "{} - {}".format(self.user, dict(TEAM_ROLE_ENUM)[self.team_role])
 
 
 class Issue(models.Model):
@@ -71,11 +98,12 @@ class Issue(models.Model):
         ordering = ('project_id', 'created',)
 
     issue_key = models.CharField(max_length=10, unique=True)
-    project_id = models.ForeignKey('Project', related_name='issues')
+    project = models.ForeignKey('Project', related_name='issues')
     title = models.CharField(max_length=100, unique=True)
     issue_description = models.TextField(blank=True, default='')
     status = models.CharField(choices=STATUSES_ENUM, default=STATUSES_ENUM[0], max_length=100)
     type = models.CharField(choices=TYPES_ENUM, default=TYPES_ENUM[0], max_length=100)
+    priority = models.CharField(choices=PRIORITY_ENUM, default=PRIORITY_ENUM[2], max_length=100)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey('APIUser', related_name='my_created_issues')
@@ -93,13 +121,14 @@ class Issue(models.Model):
         super(Issue, self).save(*args, **kwargs)
 
     def __str__(self):
-        return "{} ({})".format(self.title, self.issue_key)
+        return "{} - {}".format(self.issue_key, self.title)
+
 
 class IssueAttachment(models.Model):
     class Meta:
         ordering = ('attachment_name', 'datetime_added')
 
-    issue_id = models.ForeignKey('Issue', related_name='attachments')
+    issue = models.ForeignKey('Issue', related_name='attachments')
     attachment_name = models.CharField(max_length=100)
     datetime_added = models.DateTimeField(auto_now_add=True)
     attachment = models.FileField(upload_to="attachments")
@@ -107,57 +136,40 @@ class IssueAttachment(models.Model):
 
 
 class IssueLink(models.Model):
-    issue_id = models.ForeignKey('Issue', related_name='link_issue_id')
+    issue = models.ForeignKey('Issue', related_name='link_issue')
     link_type = models.CharField(choices=LINKS_ENUM, max_length=100)
-    linked_issue_id = models.ForeignKey('Issue', related_name='linked_issue_id')
+    linked_issue = models.ForeignKey('Issue', related_name='linked_issue')
 
     def __str__(self):
         return "{} ({}) - {}".format(self.issue_id.issue_key, self.issue_id.title, self.link_type)
 
+
 class Comment(models.Model):
     class Meta:
-        ordering = ('issue_id', 'created',)
-    issue_id = models.ForeignKey('Issue', related_name='comments')
+        ordering = ('issue', 'created',)
+    issue = models.ForeignKey('Issue', related_name='issue_comments')
     author = models.ForeignKey('APIUser', related_name='my_comments')
-    comment = models.TextField()
+    comment = models.TextField(blank=False)
     created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(blank=True)
-    highlighted = models.TextField()
+    updated = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
         """
         Use the `pygments` library to create a highlighted HTML
         representation of the code snippet.
         """
-        lexer = get_lexer_by_name('')
-        formatter = HtmlFormatter(style=self.style, full=True)
-        self.highlighted = highlight(self.comment, lexer, formatter)
+        print(args)
+        print(kwargs)
         super(Comment, self).save(*args, **kwargs)
 
 
-class Permission(models.Model):
-    permission_name = models.CharField(max_length=100, blank=False, unique=True)
-    permission_description = models.TextField(blank=True)
-    permission_type = models.CharField(blank=False, choices=PERMISSION_TYPE_ENUM, max_length=30)
-
-    def __str__(self):
-        # return "%s | %s | %s" % (
-        #     six.text_type(self.content_type.app_label),
-        #     six.text_type(self.content_type),
-        #     six.text_type(self.name))
-        return "{}".format(self.permission_description)
-
-class UserPermission(models.Model):
-    user = models.ForeignKey('APIUser', related_name='my_permissions')
-    permission = models.ForeignKey('Permission', related_name='users_with_permission')
-
+class Worklog(models.Model):
     class Meta:
-        ordering = ('user',)
-        unique_together = ('user', 'permission')
-
-    def __str__(self):
-        return "{} {} - {}".format(
-            self.user.first_name,
-            self.user.last_name,
-            self.permission.permission_description
-        )
+        ordering = ('issue', 'work_date', 'user',)
+    user = models.ForeignKey('APIUser', related_name='my_worklogs')
+    issue = models.ForeignKey('Issue', related_name='issue_worklogs')
+    created = models.DateTimeField(auto_now_add=True, verbose_name='Worklog logging time')
+    updated = models.DateTimeField(auto_now_add=True, verbose_name='Worklog updating time')
+    work_date = models.DateField(auto_now_add=True)
+    work_hours = models.IntegerField(default=0)
+    work_minutes = models.IntegerField(default=0)
