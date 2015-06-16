@@ -125,11 +125,14 @@ def dashboard(request):
 def project(request, project_id):
     args = {}
     args['username'] = auth.get_user(request).username
-    args['project_id'] = project_id
+    args['project_id'] = int(project_id)
     args['full_name'] = "{} {}".format(auth.get_user(request).first_name, auth.get_user(request).last_name)
     user = requests.get(url="".join([API_BASE_LINK, 'users/{}/'.format(auth.get_user(request).id)])).json()
+    args['team_member_options'] = requests.options(url="".join([API_BASE_LINK, 'project_team/']), headers=get_api_token(request), params={'format': 'json'}).json()
     for project in user['user_projects']:
         project['project_details'] = requests.get(project['project'], headers=get_api_token(request), params={'format': 'json'}).json()
+        for project_member in project['project_details']['project_team']:
+            project_member['user'] = requests.get(project_member['user'], headers=get_api_token(request), params={'format': 'json'}).json()
         for issue in project['project_details']['issues']:
             issue['options'] = requests.options(issue['url'], headers=get_api_token(request), params={'format': 'json'}).json()
             issue['assigned_to'] = requests.get(issue['assigned_to'], headers=get_api_token(request), params={'format': 'json'}).json()
@@ -212,6 +215,7 @@ def add_work_log(request):
     headers['Content-type']='application/json'
     data = dict()
     url = "".join([API_BASE_LINK, 'worklogs', '/',])
+    response=dict()
     if request.method == 'POST':
         method = request.POST.get('_method', '')
         if str(method).upper() == 'DELETE':
@@ -219,10 +223,33 @@ def add_work_log(request):
         elif str(method).upper() == 'PATCH':
             for key in request.POST:
                 data[key]=request.POST.get(key, '')
-            requests.patch(url=url, headers=headers, params=data).json()
+            response = requests.patch(url=url, headers=headers, params=data).json()
         else:
             url = "".join([API_BASE_LINK, 'worklogs', '/'])
             for key in request.POST:
                 data[key]=request.POST.get(key, '')
-            requests.post(url=url, headers=headers, params=data).json()
-    return redirect('/dashboard/')
+            response = requests.post(url=url, headers=headers, params=data).json()
+    return JsonResponse(response)
+
+
+@csrf_exempt
+def project_team(request, member_id):
+    headers=get_api_token(request)
+    headers['Content-type']='application/json'
+    data = dict()
+    url = "".join([API_BASE_LINK, 'project_team', '/', member_id, '/',])
+    response=dict()
+    if request.method == 'POST':
+        method = request.POST.get('_method', '')
+        if str(method).upper() == 'DELETE':
+            requests.delete(url=url, headers=headers)
+        elif str(method).upper() == 'PATCH':
+            for key in request.POST:
+                data[key]=request.POST.get(key, '')
+            response = requests.patch(url=url, headers=headers, params=data).json()
+        else:
+            url = "".join([API_BASE_LINK, 'project_team', '/'])
+            for key in request.POST:
+                data[key]=request.POST.get(key, '')
+            response = requests.post(url=url, headers=headers, params=data).json()
+    return JsonResponse(response)

@@ -53,7 +53,7 @@
                                                             class="fa fa-male"></i>&nbsp;{{ issue.assigned_to.first_name }} {{ issue.assigned_to.last_name }}
                                                     </a>
                                                     {% if issue.issue_comments|length %}
-                                                        <span class="badge">{{ issue.issue_comments|length }}</span>{% endif %}
+                                                        <span class="badge"><i class="fa fa-comments-o"></i> {{ issue.issue_comments|length }}</span>{% endif %}
                                                 </li>
                                             {% endif %}
                                         {% endfor %}
@@ -94,7 +94,7 @@
                                                             class="fa fa-male"></i>&nbsp;{{ issue.assigned_to.first_name }} {{ issue.assigned_to.last_name }}
                                                     </a>
                                                     {% if issue.issue_comments|length %}
-                                                        <span class="badge">{{ issue.issue_comments|length }}</span>{% endif %}
+                                                        <span class="badge"><i class="fa fa-comments-o"></i> {{ issue.issue_comments|length }}</span>{% endif %}
                                                 </li>
                                             {% endif %}
                                         {% endfor %}
@@ -135,7 +135,7 @@
                                                             class="fa fa-male"></i>&nbsp;{{ issue.assigned_to.first_name }} {{ issue.assigned_to.last_name }}
                                                     </a>
                                                     {% if issue.issue_comments|length %}
-                                                        <span class="badge">{{ issue.issue_comments|length }}</span>{% endif %}
+                                                        <span class="badge"><i class="fa fa-comments-o"></i> {{ issue.issue_comments|length }}</span>{% endif %}
                                                 </li>
                                             {% endif %}
                                         {% endfor %}
@@ -176,7 +176,7 @@
                                                             class="fa fa-male"></i>&nbsp;{{ issue.assigned_to.first_name }} {{ issue.assigned_to.last_name }}
                                                     </a>
                                                     {% if issue.issue_comments|length %}
-                                                        <span class="badge">{{ issue.issue_comments|length }}</span>{% endif %}
+                                                        <span class="badge"><i class="fa fa-comments-o"></i> {{ issue.issue_comments|length }}</span>{% endif %}
                                                 </li>
                                             {% endif %}
                                         {% endfor %}
@@ -271,6 +271,50 @@
                         }
                     </script>
                 </div>
+                {% for team_member in project.project_details.project_team %}
+                    {% if username == team_member.user.username and team_member.team_role == 'PM' or username == team_member.user.username and team_member.team_role == 'QALEAD' %}
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-lg-12 text-left">
+                                    <a class="btn btn-primary" onclick="toggle_team()">
+                                        <h4 id="toggle"><i class="fa fa-users"></i>&nbsp;Manage team</h4></a>
+                                </div>
+                            </div>
+                            <br>
+                            <div class="container col-lg-4" id="team" style="display:none">
+                                {% for member in project.project_details.project_team %}
+                                <div class="row" id="{{ member.id }}">
+                                    <div class="row text-left">
+                                       <div class="panel panel-primary">
+                                           <div class="panel-body">
+                                               <div class="row">
+                                                   <div class="col-lg-10">
+                                                       <h3 class="panel-title"><i class="fa fa-user"></i> {{ member.user.first_name }} {{ member.user.last_name }}</h3>
+                                                   </div>
+                                                   <div class="col-lg-2">
+                                                       <span class="badge js-remove"><i class="fa fa-user-times"></i></span>
+                                                   </div>
+                                               </div>
+                                               <p class="text-info">
+                                               {% for option in team_member_options.actions.POST.team_role.choices %}
+                                                   {% if member.team_role == option.value %} {{ option.display_name }}
+                                                   {% endif %}
+                                               {% endfor %}
+                                               </p>
+                                           </div>
+                                       </div>
+                                    </div>
+                                    </div>
+                                {% endfor %}
+                            <div>
+                                <a class="btn btn-primary" id="create_comment__{{ project.id }}" onclick="add_team('create_form');"><i class="fa fa-user-plus"></i> Add team member</a>
+                            </div>
+
+                            </div>
+
+                        </div>
+                    {% endif %}
+                {% endfor %}
                 {% endif %}
             {% endfor %}
         </div>
@@ -465,6 +509,13 @@
                                                 </fieldset>
                                             </form>
                                         </div>
+                                    </div>
+                                    <div class="panel-footer text-right">
+                                        {% if issue.created == issue.updated %}
+                                        Posted: {{ issue.created|slice:"0:10" }} {{ issue.created|slice:"11:19" }}
+                                        {% else %}
+                                        Updated: {{ issue.updated|slice:"0:10" }} {{ issue.updated|slice:"11:19" }}
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="row text-left">
@@ -897,5 +948,193 @@
                 panel.parentNode.removeChild(panel);
             }
         }
+
+        var editable = Sortable.create(document.getElementById('team'), {
+            sort: false,
+            animation: 150,
+            filter:  ".js-remove",
+            onFilter: function (evt) {
+                var item = evt.item,
+                ctrl = evt.target;
+                if (Sortable.utils.is(ctrl, ".js-remove")) {
+                    var http=new XMLHttpRequest();
+                    params = '_method=DELETE'
+                    http.open("POST", '/project_team/' + evt.item.id + '/', true);
+                    http.withCredentials = true;
+                    http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=utf-8");
+                    http.send(params);
+                    evt.item.parentNode.removeChild(evt.item);
+                    }
+                },
+            });
+
+        function toggle_team() {
+            var ele = document.getElementById("toggle");
+            var team = document.getElementById("team");
+            if(team.style.display == "block") {
+                    team.style.display = "none";
+                ele.innerHTML = "<i class='fa fa-users'></i>&nbsp;Manage team</h4>";
+            }
+            else {
+                team.style.display = "block";
+                ele.innerHTML = "&nbsp;Collapse</h4>";
+            }
+        }
+
+        function add_team(event_type, e) {
+            e=e||window.event;
+            element = e.srcElement;
+            if(event_type === "create_form") {
+                div = element.parentNode;
+                //<div class="row" id="{{ member.id }}">
+                var div_row = document.createElement("div");
+                div_row.className = "row";
+                div.insertBefore(div_row, element);
+
+                var div_row2 = document.createElement("div");
+                div_row2.className = "row text-left";
+                div_row.appendChild(div_row2);
+
+                var div_panel = document.createElement("div");
+                div_panel.className = "panel panel-primary";
+                div_row2.appendChild(div_panel);
+
+                var div_body = document.createElement("div");
+                div_body.className = "panel-body";
+                div_panel.appendChild(div_body);
+
+                var form = document.createElement("form");
+                div_body.appendChild(form);
+
+                var form_group_1 = document.createElement("div");
+                form_group_1.className = "form-group row";
+                form.appendChild(form_group_1);
+
+                var label2_ = document.createElement("p");
+                label2_.className = "text-muted";
+                label2_.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;Choose user <i class='fa fa-user'></i> and team role <i class='fa fa-gamepad'></i>";
+                form_group_1.appendChild(label2_)
+
+                var col1 = document.createElement("div");
+                col1.className = "col-lg-6";
+                form_group_1.appendChild(col1);
+
+                var col2 = document.createElement("div");
+                col2.className = "col-lg-6";
+                form_group_1.appendChild(col2);
+
+                var form_group_2 = document.createElement("div");
+                form_group_2.className = "btn-group btn-block";
+                form.appendChild(form_group_2);
+
+                var element1 = document.createElement("INPUT");
+                element1.name="project"
+                element1.type = 'hidden'
+                element1.value = '/api/projects/{{ project_id }}/'
+                form_group_1.appendChild(element1);
+
+                var element2 = document.createElement("select");
+                element2.name="team_role"
+                element2.className = "form-control col-lg-10";
+                col2.appendChild(element2);
+
+                {% for option in team_member_options.actions.POST.team_role.choices %}
+                    var elem = document.createElement("option");
+                    elem.value = "{{ option.value }}";
+                    elem.innerHTML = "{{ option.display_name }}";
+                    element2.appendChild(elem);
+                {% endfor %}
+
+                var element2_ = document.createElement("select");
+                element2_.name="user"
+                element2_.className = "form-control";
+                col1.appendChild(element2_);
+
+                {% for option in team_member_options.actions.POST.user.choices %}
+                    elem = document.createElement("option");
+                    elem.value = "{{ option.value }}";
+                    elem.innerHTML = "{{ option.display_name }}";
+                    element2_.appendChild(elem);
+                {% endfor %}
+
+                var alert_div = document.createElement("div");
+                alert_div.className = "alert alert-dismissible alert-warning";
+                alert_div.style.display = "none";
+                alert_div.id = 'alert';
+                alert_div.innerHTML = '<h4>Warning!</h4><p>This user is already in team. If you want to change his role, delete him and add to the project again.</p>';
+                form_group_2.appendChild(alert_div);
+
+                var element3 = document.createElement("button");
+                element3.type = "reset";
+                element3.className = "btn btn-default btn-xs";
+                element3.innerHTML = "<i class='fa fa-times'></i> Cancel";
+                element3.setAttribute("onclick","javascript:add_team('cancel');");
+                form_group_2.appendChild(element3);
+
+                var element4 = document.createElement("button");
+                element4.type = "button";
+                element4.className = "btn btn-primary btn-xs";
+                element4.innerHTML = "Save";
+                element4.setAttribute("onclick","javascript:add_team('create');");
+                form_group_2.appendChild(element4);
+            }
+            else if(event_type === "cancel") {
+                panel = element.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
+                panel.parentNode.removeChild(panel);
+            }
+            else if(event_type === "create") {
+                form = element.parentNode.parentNode;
+                var http=new XMLHttpRequest();
+                params='project=' + form.elements['project'].value + '&team_role=' + form.elements['team_role'].value + '&user=' + form.elements['user'].value + ';';
+                http.open("POST", '/project_team/0/', true);
+                http.withCredentials = true;
+                http.onreadystatechange = function() {
+                    if (http.readyState == 4) {
+                        response_json = JSON.parse(http.responseText);
+                        if(response_json['non_field_errors']) {
+                            document.getElementById('alert').style.display = 'block';
+                        }
+                        else {
+                            div = element.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
+                            var new_member = document.createElement("div");
+                            new_member.className = "alert alert-dismissible alert-success";
+                            new_member.innerHTML = '<button type="button" class="close" data-dismiss="alert">×</button><h4>Congratulation!</h4><p>User is successfully added to the team.</p>';
+                            panel = element.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
+                            var team_member = document.createElement("div");
+                            team_member.className = "row";
+                            team_member.id = response_json['id'];
+                            team_member.innerHTML = ' \
+                                <div class="row text-left"> \
+                                   <div class="panel panel-primary"> \
+                                       <div class="panel-body"> \
+                                           <div class="row"> \
+                                               <div class="col-lg-10"> \
+                                                   <h3 class="panel-title"><i class="fa fa-user"></i> ' +form.elements['user'].options[form.elements['user'].selectedIndex].text + ' </h3> \
+                                               </div> \
+                                               <div class="col-lg-2"> \
+                                                   <span class="badge js-remove"><i class="fa fa-user-times"></i></span> \
+                                               </div> \
+                                           </div> \
+                                           <p class="text-info">' + form.elements['team_role'].options[form.elements['team_role'].selectedIndex].text + '\
+                                           </p> \
+                                       </div> \
+                                   </div> \
+                                </div> \
+                                ';
+                            div.parentNode.insertBefore(team_member, panel.parentNode);
+                            var alert_div = document.createElement("div");
+                            alert_div.className = "alert alert-dismissible alert-success";
+                            alert_div.innerHTML = '<button type="button" class="close" data-dismiss="alert">×</button><h4>Congratulation!</h4><p>User is successfully added to the team.</p>';
+                            div.insertBefore(alert_div, panel);
+                            panel.parentNode.removeChild(panel);
+                        }
+                    }
+                }
+                http.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=utf-8");
+                http.send(params);
+            }
+        }
+
+
     </script>
 {% endblock scripts %}

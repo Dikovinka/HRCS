@@ -122,7 +122,7 @@ class ProjectTeamSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = ProjectTeam
-        fields = ('url', 'user', 'project', 'team_role',)
+        fields = ('id', 'url', 'user', 'project', 'team_role',)
 
     def create(self, validated_data):
         """
@@ -145,6 +145,7 @@ class ProjectSerializer(serializers.HyperlinkedModelSerializer):
     project_description = serializers.CharField(required=False, allow_blank=True, max_length=100)
     created = serializers.DateTimeField(read_only=True)
     project_team = ProjectTeamSerializer(many=True, read_only=True)
+    project_manager = serializers.StringRelatedField()
     issues = IssueSerializer(many=True, read_only=True)
 
     class Meta:

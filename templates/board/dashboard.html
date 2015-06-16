@@ -52,7 +52,7 @@
                                                             class="fa fa-male"></i>&nbsp;{{ issue.assigned_to.first_name }} {{ issue.assigned_to.last_name }}
                                                     </a>
                                                     {% if issue.issue_comments|length %}
-                                                        <span class="badge">{{ issue.issue_comments|length }}</span>{% endif %}
+                                                        <span class="badge"><i class="fa fa-comments-o"></i> {{ issue.issue_comments|length }}</span>{% endif %}
                                                 </li>
                                             {% endif %}
                                         {% endfor %}
@@ -93,7 +93,7 @@
                                                             class="fa fa-male"></i>&nbsp;{{ issue.assigned_to.first_name }} {{ issue.assigned_to.last_name }}
                                                     </a>
                                                     {% if issue.issue_comments|length %}
-                                                        <span class="badge">{{ issue.issue_comments|length }}</span>{% endif %}
+                                                        <span class="badge"><i class="fa fa-comments-o"></i> {{ issue.issue_comments|length }}</span>{% endif %}
                                                 </li>
                                             {% endif %}
                                         {% endfor %}
@@ -134,7 +134,7 @@
                                                             class="fa fa-male"></i>&nbsp;{{ issue.assigned_to.first_name }} {{ issue.assigned_to.last_name }}
                                                     </a>
                                                     {% if issue.issue_comments|length %}
-                                                        <span class="badge">{{ issue.issue_comments|length }}</span>{% endif %}
+                                                        <span class="badge"><i class="fa fa-comments-o"></i> {{ issue.issue_comments|length }}</span>{% endif %}
                                                 </li>
                                             {% endif %}
                                         {% endfor %}
@@ -175,7 +175,7 @@
                                                             class="fa fa-male"></i>&nbsp;{{ issue.assigned_to.first_name }} {{ issue.assigned_to.last_name }}
                                                     </a>
                                                     {% if issue.issue_comments|length %}
-                                                        <span class="badge">{{ issue.issue_comments|length }}</span>{% endif %}
+                                                        <span class="badge"><i class="fa fa-comments-o"></i> {{ issue.issue_comments|length }}</span>{% endif %}
                                                 </li>
                                             {% endif %}
                                         {% endfor %}
@@ -463,6 +463,13 @@
                                             </form>
                                         </div>
                                     </div>
+                                    <div class="panel-footer text-right">
+                                       {% if issue.created == issue.updated %}
+                                       Posted: {{ issue.created|slice:"0:10" }} {{ issue.created|slice:"11:19" }}
+                                       {% else %}
+                                       Updated: {{ issue.updated|slice:"0:10" }} {{ issue.updated|slice:"11:19" }}
+                                       {% endif %}
+                                   </div>
                                 </div>
                                 <div class="row text-left">
                                     <div class="col-lg-8 col-lg-offset-1">
@@ -481,7 +488,7 @@
                                                     </h3>
                                                 </div>
                                                 <div class="panel-body">
-                                                    <p id="comment_paragrarh__{{ comment.id }}" class="text-info">{{ comment.comment }}</p>
+                                                    <p id="comment_paragraph__{{ comment.id }}" class="text-info">{{ comment.comment }}</p>
                                                 </div>
                                                 <div class="panel-footer text-right">
                                                     {% if comment.created == comment.updated %}
@@ -808,7 +815,6 @@
                 label2.innerHTML = "Work date: ";
                 label2.className = "control-label";
                 form_group_1.appendChild(label2);
-
 
                 var date = new Date();
                 var day = date.getDate();

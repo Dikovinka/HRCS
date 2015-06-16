@@ -14,4 +14,5 @@ urlpatterns = [
     url(r'^add_work_log/', views.add_work_log, name='add_work_log'),
     url(r'^dashboard/', views.dashboard, name='dashboard'),
     url(r'^project/(?P<project_id>\d+)/', views.project, name='project_board'),
+    url(r'^project_team/(?P<member_id>\d+)/', views.project_team, name='project_team'),
 ]
