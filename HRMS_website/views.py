@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from HRMS.settings import API_BASE_LINK
 from utils.mandrill_wrapper import send_mail
 from rest_framework.authtoken.models import Token
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from urllib.parse import unquote
 import requests, json
 # Create your views here.
@@ -24,7 +24,10 @@ def login(request):
         user = auth.authenticate(username=username, password=password)
         if user is not None:
             auth.login(request, user)
-            token = Token.objects.create(user=user)
+            try:
+                token = Token.objects.create(user=user)
+            except Exception:
+                token = Token.objects.get(user=user)
             response = redirect('/dashboard/')
             response.set_cookie(key='api_token', value=token.key, expires=datetime.today()+timedelta(days=1))
             return response
@@ -37,10 +40,16 @@ def login(request):
 
 
 def logout(request):
-    Token.objects.get(user=auth.get_user(request)).delete()
+    try:
+        Token.objects.get(user=auth.get_user(request)).delete()
+    except Exception:
+        pass
     auth.logout(request)
     response = redirect('/')
-    response.delete_cookie('api_token')
+    try:
+        response.delete_cookie('api_token')
+    except Exception:
+        pass
     return response
 
 
@@ -253,3 +262,29 @@ def project_team(request, member_id):
                 data[key]=request.POST.get(key, '')
             response = requests.post(url=url, headers=headers, params=data).json()
     return JsonResponse(response)
+
+@csrf_exempt
+def weekly_report(request):
+    headers=get_api_token(request)
+    headers['Content-type']='application/json'
+    url = "".join([API_BASE_LINK, 'worklogs', '/'])
+    if request.method == 'GET':
+        args = {}
+        today = date.today()
+        week = dict()
+        for i in range(0,7):
+            week[7-i] = date.today() - timedelta(days=i)
+        print(week)
+        args['week'] = week
+        args['username'] = auth.get_user(request).username
+        args['full_name'] = "{} {}".format(auth.get_user(request).first_name, auth.get_user(request).last_name)
+        worklogs = requests.get(url=url, headers=get_api_token(request), params={'format': 'json'}).json()
+        args['worklog_options'] = requests.options(url=url, headers=get_api_token(request), params={'format': 'json'}).json()
+        for worklog in worklogs:
+            worklog['issue'] = requests.get(worklog['issue'], headers=get_api_token(request), params={'format': 'json'}).json()
+            del worklog['issue']['issue_worklogs']
+            del worklog['issue']['issue_comments']
+        args['worklogs'] = worklogs
+        return render_to_response('board/weekly_report.html', args)
+    else:
+        return JsonResponse({'error': 'Invalid request'})

@@ -15,4 +15,6 @@ urlpatterns = [
     url(r'^dashboard/', views.dashboard, name='dashboard'),
     url(r'^project/(?P<project_id>\d+)/', views.project, name='project_board'),
     url(r'^project_team/(?P<member_id>\d+)/', views.project_team, name='project_team'),
+    url(r'^reports/', views.weekly_report, name='reports'),
+    url(r'^weekly_report/', views.weekly_report, name='weekly_report'),
 ]
