@@ -74,7 +74,7 @@ class IssueViewSet(viewsets.ModelViewSet):
     """
     queryset = Issue.objects.all()
     serializer_class = IssueSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsProjectTeamOnly)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def create(self, request, *args, **kwargs):
         if(request.query_params):
