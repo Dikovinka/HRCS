@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from HRMS.settings import API_BASE_LINK
-
+from django.utils import timezone
 
 STATUSES_ENUM = [
     ('OPENED', 'Opened'),
@@ -158,9 +158,10 @@ class Comment(models.Model):
         Use the `pygments` library to create a highlighted HTML
         representation of the code snippet.
         """
-        print(args)
-        print(kwargs)
         super(Comment, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return "{} ({}) - {}".format(self.issue.issue_key, self.author.username, self.comment)
 
 
 class Worklog(models.Model):
@@ -170,6 +171,9 @@ class Worklog(models.Model):
     issue = models.ForeignKey('Issue', related_name='issue_worklogs')
     created = models.DateTimeField(auto_now_add=True, verbose_name='Worklog logging time')
     updated = models.DateTimeField(auto_now_add=True, verbose_name='Worklog updating time')
-    work_date = models.DateField(auto_now_add=True)
+    work_date = models.DateField(blank=False, null=False)
     work_hours = models.IntegerField(default=0)
     work_minutes = models.IntegerField(default=0)
+
+    def __str__(self):
+        return "{} ({}) - {}".format(self.issue.issue_key, self.user.username, self.work_date)

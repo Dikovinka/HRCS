@@ -270,11 +270,9 @@ def weekly_report(request):
     url = "".join([API_BASE_LINK, 'worklogs', '/'])
     if request.method == 'GET':
         args = {}
-        today = date.today()
-        week = dict()
+        week = []
         for i in range(0,7):
-            week[7-i] = date.today() - timedelta(days=i)
-        print(week)
+            week.append(date.today() - timedelta(days=i))
         args['week'] = week
         args['username'] = auth.get_user(request).username
         args['full_name'] = "{} {}".format(auth.get_user(request).first_name, auth.get_user(request).last_name)

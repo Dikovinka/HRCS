@@ -2,6 +2,7 @@
 {% load staticfiles %}
 
 {% block content %}
+
     <script src="{% static 'js/Sortable.js' %}"></script>
     <script src="{% static 'js/angular.min.js' %}"></script>
     <script src="{% static 'js/ng-sortable.js' %}"></script>
@@ -9,56 +10,69 @@
     <!-- Contact Section -->
     <section id="contact">
         <div class="container page-header">
-            <div class="container-fluid">
+            <div class="container">
                 <div class="row">
                     <div class="col-lg-12 text-center">
-                        <h4><i class="fa fa-building-o"></i>&nbsp;Weekly worklogs report</h4>
-                        <hr class="star-primary">
-                        {% for day in week %}
-                            <div class="row text-left">
-                                <div class="col-lg-3" style="padding-left: 0; padding-right: 0;">
-                                    <p class="lead">{{ day. }}</p>
-                                    <ul class="list-group" id="opened_{{ project.project_details.id }}">
-                                        {% for issue in project.project_details.issues %}
-                                            {% if issue.status == 'OPENED' %}
-                                                <li class="list-group-item" id="{{ issue.id }}">
-                                                    {% if issue.type == 'TASK' %}
-                                                        <a href="#issueModal{{ issue.id }}"
+                        <h4><i class="fa fa-calendar"></i>&nbsp;Weekly worklogs report</h4>
+                        <div class="row text-left">
+                        {% for day in week reversed %}
+                                <div class="row col-lg-2" style="padding-left: 0; padding-right: 0;">
+                                    <p class="lead">{{ day|date }}</p>
+                                    <ul class="list-group" id="{{ day|date:'Ymd' }}">
+                                        {% for worklog in worklogs %}
+                                            {% if worklog.work_date == day|date:'Y-m-d' %}
+                                                <li class="list-group-item" id="{{ worklog.id }}">
+                                                    <p class="text-primary">
+                                                        <i class="fa fa-user"></i>
+                                                            {{ worklog.user }}
+                                                    <br>
+                                                        <i class="fa fa-clock-o"></i>
+                                                            <span class="label label-default">
+                                                                {% if worklog.work_hours < 10 %}
+                                                                    0
+                                                                {% endif %}
+                                                                {{ worklog.work_hours }}
+                                                                :
+                                                                {% if worklog.work_minutes < 10 %}
+                                                                    0
+                                                                {% endif %}
+                                                                {{ worklog.work_minutes }}
+                                                            </span>
+                                                    </p>
+
+                                                    <p class="text-muted">Issue details:</p>
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;
+                                                    {% if worklog.issue.type == 'TASK' %}
+                                                        <a href="#issueModal{{ worklog.issue.id }}"
                                                            class="label label-info portfolio-link"
-                                                           data-toggle="modal">{{ issue.issue_key }}</a>
-                                                    {% elif issue.type == 'BUG' %}
-                                                        <a href="#issueModal{{ issue.id }}"
+                                                           data-toggle="modal">{{ worklog.issue.issue_key }}</a>
+                                                    {% elif worklog.issue.type == 'BUG' %}
+                                                        <a href="#issueModal{{ worklog.issue.id }}"
                                                            class="label label-danger portfolio-link"
-                                                           data-toggle="modal">{{ issue.issue_key }}</a>
-                                                    {% elif issue.type == 'SUB_TASK' %}
+                                                           data-toggle="modal">{{ worklog.issue.issue_key }}</a>
+                                                    {% elif worklog.issue.type == 'SUB_TASK' %}
                                                         <a href="#issueModal{{ issue.id }}"
                                                            class="label label-default portfolio-link"
-                                                           data-toggle="modal">{{ issue.issue_key }}</a>
+                                                           data-toggle="modal">{{ worklog.issue.issue_key }}</a>
                                                     {% endif %}
-                                                    {% if issue.priority == 'TRIVIAL' %}
+                                                    {% if worklog.issue.priority == 'TRIVIAL' %}
                                                         &nbsp;<i class="fa fa-arrow-circle-down" style="color: #009926"></i>
-                                                    {% elif issue.priority == 'MINOR' %}
+                                                    {% elif worklog.issue.priority == 'MINOR' %}
                                                         &nbsp;<i class="fa fa-arrow-circle-down" style="color: #770000"></i>
-                                                    {% elif issue.priority == 'MAJOR' %}
+                                                    {% elif worklog.issue.priority == 'MAJOR' %}
                                                         &nbsp;<i class="fa fa-arrow-circle-up" style="color: #009926"></i>
-                                                    {% elif issue.priority == 'CRITICAL' %}
+                                                    {% elif worklog.issue.priority == 'CRITICAL' %}
                                                         &nbsp;<i class="fa fa-arrow-circle-up" style="color: #770000"></i>
-                                                    {% elif issue.priority == 'BLOCKER' %}
+                                                    {% elif worklog.issue.priority == 'BLOCKER' %}
                                                         &nbsp;<i class="fa fa-ban" style="color: #770000"></i>
                                                     {% endif %}
-                                                    <p class="text-info">{{ issue.title }}</p>
-                                                    <a href="#" class="text-primary"><i
-                                                            class="fa fa-male"></i>&nbsp;{{ issue.assigned_to.first_name }} {{ issue.assigned_to.last_name }}
-                                                    </a>
-                                                    {% if issue.issue_comments|length %}
-                                                        <span class="badge"><i class="fa fa-comments-o"></i> {{ issue.issue_comments|length }}</span>{% endif %}
                                                 </li>
                                             {% endif %}
                                         {% endfor %}
                                     </ul>
                                 </div>
-                            </div>
                         {% endfor %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -87,70 +101,19 @@
     <script>hljs.initHighlightingOnLoad();</script>
     <script>
                     lists = [
-                        'opened_{{ project.project_details.id }}',
-                        'in_progress_{{ project.project_details.id }}',
-                        'resolved_{{ project.project_details.id }}',
-                        'closed_{{ project.project_details.id }}',
+                        {% for day in week %}
+                        '{{ day|date:'Ymd' }}',
+                        {% endfor %}
                     ];
                     for (list of lists) {
                         Sortable.create(document.getElementById(list), {
                             group: {
                             name: String(list),
-                            put: lists,
+                            put: false,
                             },
                             sort: false,
                             animation: 150,
                             onAdd: function (/**Event*/evt) {
-                                var http=new XMLHttpRequest();
-                                var params = evt.to.id.split("_");
-                                params.pop();
-                                params = params.join("_").toUpperCase();
-                                http.open("GET", '/update_issue/' + evt.item.id + '/?' + 'status=' + params, true);
-                                http.setRequestHeader("Content-type", "application/json; charset=utf-8");
-                                http.setRequestHeader("Content-length", params.length);
-                                http.setRequestHeader("Connection", "close");
-                                http.send(params);
-                                element = document.getElementById('status_' + evt.item.id);
-                                if (params == 'OPENED') {
-                                    element.className = 'form-control label-default';
-                                    var opts = element.options;
-                                    for(var opt, j = 0; opt = opts[j]; j++) {
-                                        if(opt.value == 'OPENED') {
-                                            element.selectedIndex = j;
-                                            break;
-                                        }
-                                    }
-                                }
-                                else if (params == 'IN_PROGRESS') {
-                                    element.className = 'form-control label-warning';
-                                    var opts = element.options;
-                                    for(var opt, j = 0; opt = opts[j]; j++) {
-                                        if(opt.value == 'IN_PROGRESS') {
-                                            element.selectedIndex = j;
-                                            break;
-                                        }
-                                    }
-                                }
-                                else if (params == 'RESOLVED') {
-                                    element.className = 'form-control label-info';
-                                    var opts = element.options;
-                                    for(var opt, j = 0; opt = opts[j]; j++) {
-                                        if(opt.value == 'RESOLVED') {
-                                            element.selectedIndex = j;
-                                            break;
-                                        }
-                                    }
-                                }
-                                else if (params == 'CLOSED') {
-                                    element.className = 'form-control label-success';
-                                    var opts = element.options;
-                                    for(var opt, j = 0; opt = opts[j]; j++) {
-                                        if(opt.value == 'CLOSED') {
-                                            element.selectedIndex = j;
-                                            break;
-                                        }
-                                    }
-                                }
                             },
                             onStart: function (/**Event*/evt) {
                                 item_height = evt.item.clientHeight;
