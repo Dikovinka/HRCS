@@ -1,8 +1,13 @@
+bootstrap-admin==0.3.6
 Django==1.8.1
 django-bootstrap3==5.4.0
 django-filter==0.10.0
 djangorestframework==3.1.2
+docopt==0.4.0
+gunicorn==19.3.0
+mandrill==1.0.57
 Markdown==2.6.2
 Pygments==2.0.2
-mandrill==1.0.57
-bootstrap-admin==0.3.6
+requests==2.7.0
+SQLAlchemy==1.0.4
+whitenoise==1.0.6
