@@ -8,7 +8,7 @@
     <script src="{% static 'js/ng-sortable.js' %}"></script>
     <script src="{% static 'js/bootbox.js' %}"></script>
     <!-- Contact Section -->
-    <section id="contact">
+    <section id="contact" class="wrapper">
         <div class="container page-header">
             {% for project in user_projects %}
                 <div class="container-fluid">
@@ -273,6 +273,7 @@
                 </div>
             {% endfor %}
         </div>
+    <div class="push"></div>
     </section>
 {% endblock content %}
 
