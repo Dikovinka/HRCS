@@ -524,7 +524,7 @@
                                                     evt.item.parentNode.removeChild(evt.item);
                                                 }
                                                 else if (Sortable.utils.is(ctrl, ".js-edit")) {
-                                                    paragraph = document.getElementById('comment_paragrarh__'+evt.item.id.split("__")[1]);
+                                                    paragraph = document.getElementById('comment_paragraph__'+evt.item.id.split("__")[1]);
                                                     document.getElementById('comment_edit__'+evt.item.id.split("__")[1]).style.visibility = "hidden";
                                                     var form = document.createElement("form");
                                                     form.id = "comment_form__" + evt.item.id.split("__")[1];
@@ -653,7 +653,7 @@
             button = e.srcElement;
             form = button.parentNode.parentNode;
             var p = document.createElement("p");
-            p.id = "comment_paragrarh__" + form.id.split("__")[1];
+            p.id = "comment_paragraph__" + form.id.split("__")[1];
             p.className = "text-info";
             comment = form.elements['comment'].value;
             if(event_type==="save") {
