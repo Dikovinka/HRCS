@@ -10,6 +10,25 @@
     <!-- Contact Section -->
     <section id="contact" class="wrapper">
         <div class="container page-header">
+            {% if user_projects|length == 0 %}
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-lg-12 text-center">
+                            <br>
+                            <br>
+                            <br>
+                            <br>
+                            <br>
+                            <br>
+                            <br>
+                            <br>
+                            <hr class="star-primary">
+                            <h3>You haven't been added to any projects now, please, contact your PM or QA Lead to join projects team.</h3>
+                            <hr class="star-primary">
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
             {% for project in user_projects %}
                 <div class="container-fluid">
                     <div class="row">
