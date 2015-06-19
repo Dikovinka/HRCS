@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'bud(ruo3*wd1oj4%!oh1ig1q7gwecg@2qwowrw@idx6r_j$0j7'
 MANDRILL_API_KEY = '0izk88Jh1Cy7DTajye63rg'
-API_BASE_LINK = 'http://46.53.207.122:80/api/'
+API_BASE_LINK = 'http://h-r-m-s.herokuapp.com/api/'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
