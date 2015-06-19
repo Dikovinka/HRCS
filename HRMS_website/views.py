@@ -118,6 +118,8 @@ def contact_form(request):
 
 def dashboard(request):
     args = {}
+    if isinstance(auth.get_user(request), auth.models.AnonymousUser):
+        return redirect("/login/")
     args['username'] = auth.get_user(request).username
     args['full_name'] = "{} {}".format(auth.get_user(request).first_name, auth.get_user(request).last_name)
     user = requests.get(url="".join([API_BASE_LINK, 'users/{}/'.format(auth.get_user(request).id)])).json()
@@ -133,6 +135,8 @@ def dashboard(request):
 
 def project(request, project_id):
     args = {}
+    if isinstance(auth.get_user(request), auth.models.AnonymousUser):
+        return redirect("/login/")
     args['username'] = auth.get_user(request).username
     args['project_id'] = int(project_id)
     args['full_name'] = "{} {}".format(auth.get_user(request).first_name, auth.get_user(request).last_name)
@@ -153,6 +157,8 @@ def project(request, project_id):
 @csrf_exempt
 def create_issue(request):
     args = {}
+    if isinstance(auth.get_user(request), auth.models.AnonymousUser):
+        return redirect("/login/")
     args['username'] = auth.get_user(request).username
     args['full_name'] = "{} {}".format(auth.get_user(request).first_name, auth.get_user(request).last_name)
     issue = requests.options("".join([API_BASE_LINK, "issues/"]), headers=get_api_token(request), params={'format': 'json'}).json()
@@ -270,6 +276,8 @@ def weekly_report(request):
     url = "".join([API_BASE_LINK, 'worklogs', '/'])
     if request.method == 'GET':
         args = {}
+        if isinstance(auth.get_user(request), auth.models.AnonymousUser):
+            return redirect("/login/")
         week = []
         for i in range(0,7):
             week.append(date.today() - timedelta(days=i))
