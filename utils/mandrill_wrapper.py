@@ -1,7 +1,9 @@
 __author__ = 'Max'
 import mandrill
 from HRMS.settings import MANDRILL_API_KEY
+
 mandrill_client = mandrill.Mandrill(MANDRILL_API_KEY)
+
 
 def send_mail(template_name, email_to, context):
     message = {
